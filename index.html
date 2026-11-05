@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SM64 Coop DX - Character Mod Generator</title>
+
+  <!-- Fuente estilo Mario 64 -->
+  <link href="https://fonts.cdnfonts.com/css/typeface-mario-64" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Pantalla de carga -->
+  <div id="bootScreen" class="boot-screen">
+    <div class="boot-logo">SM64 COOP DX<br><span>Character Mod Generator</span></div>
+    <div class="boot-bottom">
+      <div class="boot-spinner" aria-hidden="true"></div>
+      <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
+      <div class="boot-mascot" aria-hidden="true">🐱</div>
+    </div>
+    <p class="boot-hint" id="bootHint">Cargando…</p>
+  </div>
+
+  <!-- Aviso legal -->
+  <div id="disclaimerOverlay" class="disclaimer-overlay hidden">
+    <div class="disclaimer-panel" role="dialog" aria-labelledby="discTitle">
+      <h2 id="discTitle">⚠ Aviso</h2>
+      <div class="disclaimer-body">
+        <p><strong>Herramienta de fans, no oficial.</strong></p>
+        <ul>
+          <li>No estamos afiliados a Nintendo ni a los desarrolladores de SM64 Coop DX.</li>
+          <li>Super Mario, Mario 64 y personajes relacionados son propiedad de Nintendo.</li>
+          <li>Usa solo modelos/texturas/sonidos que tengas derecho a usar (tuyos o con permiso).</li>
+          <li>Los mods generados son responsabilidad tuya; respeta las reglas de la comunidad Coop DX.</li>
+          <li>Esta página corre en tu navegador: los archivos no se suben a ningún servidor nuestro.</li>
+        </ul>
+        <p class="disc-small">Al continuar aceptas que entiendes este aviso.</p>
+      </div>
+      <button type="button" id="btnAcceptDisclaimer" class="btn-main">Entendido, continuar</button>
+    </div>
+  </div>
+
+  <!-- Música de fondo -->
+  <audio id="bgMusic" loop>
+    <source src="another-him.mp3" type="audio/mpeg">
+  </audio>
+
+  <audio id="sfxClick" src="sfx/click.wav" preload="auto"></audio>
+  <audio id="sfxHover" src="sfx/hover.wav" preload="auto"></audio>
+  <audio id="sfxSuccess" src="sfx/success.wav" preload="auto"></audio>
+
+  <div class="stars"></div>
+
+  <div class="container">
+    <header>
+      <h1>SM64 COOP DX</h1>
+      <h2>Character Mod Generator</h2>
+      <p class="subtitle">Crea tu personaje para Character Select fácilmente</p>
+    </header>
+
+    <!-- Botón ajustes (engranaje) -->
+    <button type="button" id="btnSettings" class="gear-btn" title="Ajustes" aria-label="Ajustes">
+      <img src="assets/gear.png" alt="Ajustes" width="42" height="44">
+    </button>
+
+    <!-- Panel de ajustes -->
+    <div id="settingsOverlay" class="settings-overlay hidden">
+      <div class="settings-panel" role="dialog" aria-labelledby="settingsTitle">
+        <div class="settings-header">
+          <h3 id="settingsTitle">Ajustes</h3>
+          <button type="button" id="btnCloseSettings" class="settings-close">✕</button>
+        </div>
+
+        <div class="settings-body">
+          <div class="settings-group">
+            <label class="settings-label">1. Layout de la página</label>
+            <div class="layout-switch">
+              <button type="button" id="btnLayoutClassic" class="btn-layout active">Clásico</button>
+              <button type="button" id="btnLayoutStudio" class="btn-layout">Studio (L / R)</button>
+            </div>
+            <p class="hint">Studio pone controles a izquierda y derecha del visor 3D.</p>
+          </div>
+
+          <div class="settings-group">
+            <label class="settings-label">2. Música de fondo (Another Him)</label>
+            <div class="settings-row">
+              <button type="button" id="btnMusic" class="btn-secondary btn-small">Música: ON</button>
+            </div>
+            <div class="control-row">
+              <label>Volumen</label>
+              <input type="range" id="musicVolume" min="0" max="100" step="1" value="40">
+              <span id="musicVolumeVal">40%</span>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <label class="settings-label">3. Efectos de botones</label>
+            <div class="control-row">
+              <label>Volumen SFX</label>
+              <input type="range" id="sfxVolume" min="0" max="100" step="1" value="50">
+              <span id="sfxVolumeVal">50%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Categorías laterales -->
+    <nav class="cat-rail" id="catRail" aria-label="Categorías">
+      <button type="button" class="cat-btn active" data-cat="model" title="Modelo 3D">
+        <span class="cat-icon">🧊</span>
+        <span class="cat-label">Modelo</span>
+      </button>
+      <button type="button" class="cat-btn" data-cat="info" title="Info del personaje">
+        <span class="cat-icon">📋</span>
+        <span class="cat-label">Info</span>
+      </button>
+      <button type="button" class="cat-btn" data-cat="textures" title="Texturas / cara">
+        <span class="cat-icon">🎨</span>
+        <span class="cat-label">Texturas</span>
+      </button>
+      <button type="button" class="cat-btn" data-cat="icons" title="Iconos">
+        <span class="cat-icon">⭐</span>
+        <span class="cat-label">Iconos</span>
+      </button>
+      <button type="button" class="cat-btn" data-cat="sounds" title="Sonidos">
+        <span class="cat-icon">🔊</span>
+        <span class="cat-label">Sonidos</span>
+      </button>
+      <button type="button" class="cat-btn" data-cat="export" title="Generar mod">
+        <span class="cat-icon">📦</span>
+        <span class="cat-label">Export</span>
+      </button>
+    </nav>
+
+    <main>
+
+      <!-- ===== SECCIÓN 3D ===== -->
+      <section class="card card-3d cat-panel active" id="section3d" data-cat="model">
+        <div class="card-3d-header">
+          <h3>Modelo 3D</h3>
+          <p class="hint">Sube un modelo suelto (<strong>.glb .gltf .fbx .obj .dae</strong>) o un <strong>ZIP</strong> con modelo + texturas</p>
+        </div>
+
+        <div class="studio-workspace" id="studioWorkspace">
+          <!-- LEFT PANEL -->
+          <aside class="panel panel-left" id="panelLeft">
+            <div class="panel-title">Archivo &amp; Transform</div>
+
+            <div class="form-group">
+              <label>Archivo / ZIP</label>
+              <input type="file" id="modelFile" accept=".glb,.gltf,.obj,.fbx,.dae,.zip">
+            </div>
+
+            <div id="zipInfo" class="zip-info hidden">
+              <div class="form-group">
+                <label>Modelo encontrado en el ZIP</label>
+                <select id="zipModelSelect"></select>
+              </div>
+              <button id="btnLoadZipModel" class="btn-secondary btn-small">Cargar este modelo</button>
+            </div>
+
+            <div class="controls-3d" id="transformControls">
+              <div class="control-row">
+                <label>Posición Y</label>
+                <input type="range" id="posY" min="-2" max="3" step="0.05" value="0">
+                <span id="posYVal">0.00</span>
+              </div>
+              <div class="control-row">
+                <label>Escala</label>
+                <input type="range" id="scale" min="0.1" max="5" step="0.05" value="1">
+                <span id="scaleVal">1.00</span>
+              </div>
+              <div class="control-row">
+                <label>Rotación Y</label>
+                <input type="range" id="rotY" min="0" max="360" step="1" value="0">
+                <span id="rotYVal">0°</span>
+              </div>
+            </div>
+
+            <div class="viewer-actions">
+              <button id="btnResetView" class="btn-secondary btn-small">Resetear vista</button>
+              <button id="btnToggleSkeleton" class="btn-secondary btn-small">Mostrar rig Mario</button>
+              <button id="btnFitRig" class="btn-main btn-small" title="Calcula las articulaciones a partir del modelo (T-pose, de frente) y riggea">Auto-ajustar rig + riggear</button>
+              <button id="btnAutoRig" class="btn-main btn-small">Riggear al Mario</button>
+              <button id="btnBoneColors" class="btn-secondary btn-small">Colorear por hueso</button>
+            </div>
+            <div class="control-row">
+              <label>Alcance de brazos</label>
+              <input type="range" id="armReach" min="0.04" max="0.40" step="0.01" value="0.14">
+              <span id="armReachVal">0.14</span>
+            </div>
+            <p class="hint">Si parte de la cabeza/cuerpo se pega a los brazos, BAJA este valor y pulsa «Riggear al Mario» otra vez. Si al brazo le faltan pedazos, súbelo.</p>
+            <p id="rigStatus" class="hint">Rig Mario (15 piezas). Modelo de frente a la cámara (+Z): su IZQUIERDA queda a la derecha de la pantalla. Sube modelo → Riggear → Colorear por hueso para revisar</p>
+
+            <div class="gizmo-toolbar" id="gizmoToolbar">
+              <div class="panel-subtitle">Mover con flechas (gizmo)</div>
+              <div class="settings-row">
+                <button type="button" id="gizmoTargetModel" class="btn-layout active">Modelo</button>
+                <button type="button" id="gizmoTargetRig" class="btn-layout">Rig</button>
+                <button type="button" id="gizmoTargetBone" class="btn-layout">Hueso</button>
+              </div>
+              <div class="settings-row" style="margin-top:6px;">
+                <button type="button" id="gizmoModeTranslate" class="btn-secondary btn-small active-mode">Mover</button>
+                <button type="button" id="gizmoModeRotate" class="btn-secondary btn-small">Rotar</button>
+                <button type="button" id="gizmoModeScale" class="btn-secondary btn-small">Escalar</button>
+                <button type="button" id="gizmoDetach" class="btn-secondary btn-small">Quitar gizmo</button>
+              </div>
+              <div class="form-group" id="boneSelectWrap" style="margin-top:8px;display:none;">
+                <label>Hueso</label>
+                <select id="boneSelect"></select>
+              </div>
+              <p class="hint">Rojo = X · Verde = Y · Azul = Z. Arrastra las flechas. Órbita: clic derecho.</p>
+            </div>
+          </aside>
+
+          <!-- CENTER: VIEWER -->
+          <div class="panel panel-center">
+            <div id="viewer3d" class="viewer-3d">
+              <div id="viewerPlaceholder" class="viewer-placeholder">
+                Sube un modelo o un ZIP para verlo aquí
+              </div>
+              <canvas id="threeCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- RIGHT PANEL -->
+          <aside class="panel panel-right" id="panelRight">
+            <div class="panel-title">Texturas &amp; Pose</div>
+
+            <div class="tex-auto-box" style="margin-bottom:10px;padding:10px;background:rgba(0,0,0,0.06);border-radius:10px;">
+              <label style="display:flex;gap:8px;align-items:center;margin:0 0 8px 0;font-size:0.85rem;">
+                <input type="checkbox" id="chkAutoTex" checked>
+                Auto-detectar texturas al cargar modelo
+              </label>
+              <button type="button" id="btnDetectTex" class="btn-secondary" style="width:100%;">Detectar texturas del modelo</button>
+            </div>
+
+            <div id="texturesPanel" class="textures-panel">
+              <h4>Texturas</h4>
+              <p class="hint">1) Slot de color &nbsp; 2) Elige archivo o textura detectada/ZIP</p>
+              <div class="form-group">
+                <label>Desde tu PC</label>
+                <input type="file" id="localTexFile" accept="image/png,image/jpeg,image/gif,image/webp">
+              </div>
+
+              <div class="tex-slots" id="texSlots">
+                <button type="button" class="tex-slot active" data-type="body" title="Cuerpo / ropa">
+                  <span class="tex-slot-dot"></span>
+                  <span class="tex-slot-label">Cuerpo</span>
+                  <span class="tex-slot-name" data-for="body">—</span>
+                </button>
+                <button type="button" class="tex-slot" data-type="face" title="Cara">
+                  <span class="tex-slot-dot"></span>
+                  <span class="tex-slot-label">Cara</span>
+                  <span class="tex-slot-name" data-for="face">—</span>
+                </button>
+                <button type="button" class="tex-slot" data-type="eyes" title="Ojos">
+                  <span class="tex-slot-dot"></span>
+                  <span class="tex-slot-label">Ojos</span>
+                  <span class="tex-slot-name" data-for="eyes">—</span>
+                </button>
+                <button type="button" class="tex-slot" data-type="full" title="Todo el modelo">
+                  <span class="tex-slot-dot"></span>
+                  <span class="tex-slot-label">Todo</span>
+                  <span class="tex-slot-name" data-for="full">—</span>
+                </button>
+              </div>
+
+              <!-- radios ocultos para compatibilidad -->
+              <div class="hidden" aria-hidden="true">
+                <input type="radio" name="texType" value="body" checked>
+                <input type="radio" name="texType" value="face">
+                <input type="radio" name="texType" value="eyes">
+                <input type="radio" name="texType" value="mask">
+                <input type="radio" name="texType" value="full">
+              </div>
+
+              <div id="textureList" class="texture-list"></div>
+
+              <div id="faceAdjust" class="face-adjust hidden">
+                <h4>Ajustar cara / UV</h4>
+                <div class="control-row">
+                  <label>Offset X</label>
+                  <input type="range" id="faceOffX" min="-1" max="1" step="0.01" value="0">
+                  <span id="faceOffXVal">0.00</span>
+                </div>
+                <div class="control-row">
+                  <label>Offset Y</label>
+                  <input type="range" id="faceOffY" min="-1" max="1" step="0.01" value="0">
+                  <span id="faceOffYVal">0.00</span>
+                </div>
+                <div class="control-row">
+                  <label>Escala UV</label>
+                  <input type="range" id="faceScale" min="0.2" max="3" step="0.05" value="1">
+                  <span id="faceScaleVal">1.00</span>
+                </div>
+              </div>
+
+              <button id="btnClearTexture" class="btn-secondary btn-small">Quitar texturas</button>
+            </div>
+
+            <div class="controls-3d" id="poseControls">
+              <div class="panel-subtitle">Probar pose</div>
+              <p class="hint">Slider o número. Solo funciona después de «Riggear al Mario».</p>
+              <div class="control-row control-row-num">
+                <label>Brazo izq.</label>
+                <input type="range" id="poseArmL" min="-90" max="90" step="1" value="0">
+                <input type="number" id="poseArmLNum" min="-90" max="90" step="1" value="0" class="num-box">
+              </div>
+              <div class="control-row control-row-num">
+                <label>Brazo der.</label>
+                <input type="range" id="poseArmR" min="-90" max="90" step="1" value="0">
+                <input type="number" id="poseArmRNum" min="-90" max="90" step="1" value="0" class="num-box">
+              </div>
+              <div class="control-row control-row-num">
+                <label>Pierna izq.</label>
+                <input type="range" id="poseLegL" min="-60" max="60" step="1" value="0">
+                <input type="number" id="poseLegLNum" min="-60" max="60" step="1" value="0" class="num-box">
+              </div>
+              <div class="control-row control-row-num">
+                <label>Cabeza</label>
+                <input type="range" id="poseHead" min="-45" max="45" step="1" value="0">
+                <input type="number" id="poseHeadNum" min="-45" max="45" step="1" value="0" class="num-box">
+              </div>
+              <button id="btnResetPose" class="btn-secondary btn-small">Resetear pose</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Información básica -->
+      <section class="card cat-panel" data-cat="info" id="sectionInfo">
+        <h3>Información del Personaje</h3>
+
+        <div class="form-group">
+          <label>Nombre del personaje</label>
+          <input type="text" id="charName" placeholder="Ej: Shadow Mario" maxlength="32">
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="charDesc" rows="3" placeholder="Un personaje misterioso..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Autor / Créditos</label>
+          <input type="text" id="charAuthor" placeholder="Tu nombre">
+        </div>
+
+        <div class="form-group">
+          <label>Color del menú</label>
+          <input type="color" id="charColor" value="#ff6b9d">
+        </div>
+        <div class="form-group">
+          <label>Categoría (opcional)</label>
+          <input type="text" id="charCategory" placeholder="Ej: Meme, OC, Nintendo…">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="charCredit" checked>
+            Mostrar crédito del autor en el pack
+          </label>
+        </div>
+      </section>
+
+      <!-- Iconos -->
+      <section class="card cat-panel" data-cat="icons" id="sectionIcons">
+        <h3>Iconos (opcional)</h3>
+        <p class="hint">Si solo subes uno, se usa para menú y vida.</p>
+        <div class="form-group">
+          <label>Icono Character Select / vida</label>
+          <input type="file" id="menuIcon" accept="image/png,image/jpeg,image/gif">
+          <div class="preview" id="menuPreview"></div>
+        </div>
+        <div class="form-group">
+          <label>Icono de vida aparte (opcional)</label>
+          <input type="file" id="lifeIcon" accept="image/png,image/jpeg,image/gif">
+          <div class="preview" id="lifePreview"></div>
+        </div>
+      </section>
+
+      <!-- Sonidos (voicetable Character Select) -->
+      <section class="card cat-panel" data-cat="sounds" id="sectionSounds">
+        <h3>Sonidos (opcional)</h3>
+        <p class="hint">Formato .ogg recomendado. Los 3 saltos se eligen al azar (como Mario). Si dejas vacío, usa el default del juego.</p>
+
+        <div class="form-group"><label>Salto 1 (yah)</label><input type="file" id="soundJump1" accept="audio/*"></div>
+        <div class="form-group"><label>Salto 2 (wah)</label><input type="file" id="soundJump2" accept="audio/*"></div>
+        <div class="form-group"><label>Salto 3 (hoo)</label><input type="file" id="soundJump3" accept="audio/*"></div>
+        <div class="form-group"><label>Doble salto</label><input type="file" id="soundDoubleJump" accept="audio/*"></div>
+        <div class="form-group"><label>Triple salto / yahoo</label><input type="file" id="soundTripleJump" accept="audio/*"></div>
+        <div class="form-group"><label>Long jump</label><input type="file" id="soundLongJump" accept="audio/*"></div>
+        <div class="form-group"><label>Daño / hit</label><input type="file" id="soundHurt" accept="audio/*"></div>
+        <div class="form-group"><label>Quemado / fuego</label><input type="file" id="soundBurn" accept="audio/*"></div>
+        <div class="form-group"><label>Caída larga</label><input type="file" id="soundFall" accept="audio/*"></div>
+        <div class="form-group"><label>Muerte</label><input type="file" id="soundDeath" accept="audio/*"></div>
+        <div class="form-group"><label>Ahogo</label><input type="file" id="soundDrown" accept="audio/*"></div>
+        <div class="form-group"><label>Ground pound</label><input type="file" id="soundGroundPound" accept="audio/*"></div>
+        <div class="form-group"><label>Punch 1</label><input type="file" id="soundPunch1" accept="audio/*"></div>
+        <div class="form-group"><label>Punch 2</label><input type="file" id="soundPunch2" accept="audio/*"></div>
+        <div class="form-group"><label>Punch 3</label><input type="file" id="soundPunch3" accept="audio/*"></div>
+        <div class="form-group"><label>Estrella / here we go</label><input type="file" id="soundStar" accept="audio/*"></div>
+        <div class="form-group"><label>Inicio nivel (let's a go)</label><input type="file" id="soundLetsGo" accept="audio/*"></div>
+      </section>
+
+
+      <!-- Opciones de export -->
+      <section class="card cat-panel" data-cat="export" id="sectionExportOpts">
+        <h3>Opciones del modelo</h3>
+        <div class="form-group">
+          <label>Tipo de modelo</label>
+          <select id="exportMode">
+            <option value="animated" selected>Animado (rig Mario, experimental)</option>
+            <option value="static">Estático (sin animar, fallback seguro)</option>
+          </select>
+          <p class="hint">Animado: si el modelo tiene piezas con nombre (head, larm, body…), se asignan solas. Si no, usa distancia al hueso. Si sale mal, prueba Estático.</p>
+        </div>
+        <div class="form-group">
+          <label>Altura del personaje (unidades SM64)</label>
+          <input type="number" id="exportHeight" value="160" min="20" max="600" step="5">
+        </div>
+        <div class="form-group">
+          <label>Ajuste vertical (si flota: negativo · si se hunde: positivo)</label>
+          <input type="number" id="exportYAdjust" value="0" min="-300" max="300" step="1">
+        </div>
+        <div class="form-group">
+          <label>Solape de juntas (cierra huecos) — valor: <strong id="exportJointPadVal">0</strong></label>
+          <input type="range" id="exportJointPad" min="0" max="0.20" step="0.01" value="0">
+          <p class="hint">Con modelo por piezas (Toro): déjalo en <b>0</b>. Solo súbelo si exportas un mesh único sin nombres. ≥0.15 fuerza solape aunque haya nombres.</p>
+        </div>
+      </section>
+
+      <!-- Generar -->
+      <div class="actions cat-panel" data-cat="export" id="sectionExport">
+        <button id="btnGenerate" class="btn-main">
+          Generar Mod
+        </button>
+      </div>
+      <p class="hint" style="text-align:center;margin-top:8px;">
+        Genera el zip completo: main.lua + actors/ + texturas + sonidos.
+      </p>
+
+      <div id="status" class="status"></div>
+    </main>
+
+    <footer>
+      <p>Hecho para la comunidad de SM64 Coop DX</p>
+      <p class="small">Visor 3D + Rig oficial + Export actors/ + Mod completo</p>
+    </footer>
+  </div>
+
+  <!-- Librerías locales (sin CDN): Three.js r128 + loaders + JSZip + FileSaver -->
+  <script src="lib/three.min.js"></script>
+  <script src="lib/GLTFLoader.js"></script>
+  <script src="lib/OBJLoader.js"></script>
+  <script src="lib/fflate.js"></script>
+  <script src="lib/FBXLoader.js"></script>
+  <script src="lib/ColladaLoader.js"></script>
+  <script src="lib/OrbitControls.js"></script>
+  <script src="lib/TransformControls.js"></script>
+  <script src="lib/jszip.min.js"></script>
+  <script src="lib/FileSaver.min.js"></script>
+  <script src="script.js"></script>
+  <script src="rig.js"></script>
+</body>
+</html>
